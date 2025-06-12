@@ -1,31 +1,55 @@
-"use client";
+'use client'
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { m as motion } from "framer-motion";
 
-export default function TopicInput() {
+const suggestions = ["Black Holes", "Jazz", "Ancient Egypt", "AI Ethics"];
+
+export function TopicInput() {
   const [topic, setTopic] = useState("");
   const router = useRouter();
 
-  const handleSubmit = () => {
-    if (!topic.trim()) return;
-    router.push("/explore"); // later: pass topic as query param or context
+  const handleSearch = (input: string) => {
+    if (!input) return;
+    router.push(`/explore?topic=${encodeURIComponent(input)}`);
   };
 
   return (
-    <div className="w-full max-w-md flex flex-col items-center gap-4">
-      <input
-        type="text"
-        placeholder="Enter a topic you're curious about..."
-        value={topic}
-        onChange={(e) => setTopic(e.target.value)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-      />
-      <button
-        onClick={handleSubmit}
-        className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg shadow-md transition"
-      >
-        Start My Quest
-      </button>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-4"
+    >
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+        <input
+          type="text"
+          placeholder="Input a topic..."
+          className="px-4 py-2 border rounded-md w-full sm:w-80 bg-white dark:bg-gray-800 dark:border-gray-600"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+        />
+        <button
+          onClick={() => handleSearch(topic)}
+          className="bg-blue-600 dark:bg-yellow-500 text-white dark:text-black font-semibold px-4 py-2 rounded-md hover:opacity-90"
+        >
+          Start My Quest
+        </button>
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-2 text-sm">
+        <span className="text-gray-600 dark:text-gray-300">Or try:</span>
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion}
+            onClick={() => handleSearch(suggestion)}
+            className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
+    </motion.div>
   );
 }
