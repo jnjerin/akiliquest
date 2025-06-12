@@ -1,5 +1,5 @@
-// import TopicInput from "../components/TopicInput";
-// import Header from "../components/Header";
+import TopicInput from "../components/TopicInput";
+import Header from "../components/Header";
 
 export default function HomePage() {
   return (
