@@ -41,3 +41,16 @@ export function CuriosityList({ trail }: CuriosityListProps) {
                 <ChevronDownIcon className="h-5 w-5 text-gray-400 ml-4 mt-1" />
               )}
             </div>
+          </div>
+          
+          {/* Connection arrow for visual flow */}
+          {index < trail.length - 1 && (
+            <div className="flex justify-center py-2">
+              <div className="w-px h-4 bg-gradient-to-b from-emerald-300 to-transparent dark:from-emerald-600"></div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
