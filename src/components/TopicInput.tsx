@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { m as motion } from "framer-motion";
 
 const suggestions = ["Black Holes", "Jazz", "Ancient Egypt", "AI Ethics"];
 
@@ -16,12 +15,7 @@ export function TopicInput() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-4"
-    >
+    <>
       <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
         <input
           type="text"
@@ -50,6 +44,6 @@ export function TopicInput() {
           </button>
         ))}
       </div>
-    </motion.div>
+    </>
   );
 }

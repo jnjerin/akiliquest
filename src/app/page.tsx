@@ -1,5 +1,12 @@
 import { HeroSection } from "@/components/HeroSection";
 
 export default function HomePage() {
-  return <HeroSection />;
+  console.log("HomePage is rendering");
+  return(
+    <>
+      <HeroSection />
+      
+    </> 
+
+  )
 }
