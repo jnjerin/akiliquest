@@ -49,11 +49,13 @@ export function TopicSearch() {
           <button
             type="submit"
             disabled={!topic.trim() || isLoading}
-            className="w-full mt-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600
-                       disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed
+            className="w-full mt-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500     
+                       hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600
+                       disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed
                        text-white font-semibold py-4 px-8 rounded-xl text-lg
                        transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
-                       focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900 outline-none"
+                       focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900 outline-none
+                       shadow-lg hover:shadow-xl"
           >
             {isLoading ? (
               <div className="flex items-center justify-center space-x-2">
