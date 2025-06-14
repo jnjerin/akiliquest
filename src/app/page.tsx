@@ -1,5 +1,4 @@
 import { HeroSection } from "@/components/HeroSection";
-import { Navbar } from "@/components/Navbar";
 import { TopicSearch } from "@/components/TopicSearch";
 import { SuggestedTopics } from "@/components/SuggestedTopics";
 

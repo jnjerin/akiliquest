@@ -1,13 +1,11 @@
 "use client";
 
 import { Suspense } from "react";
-import { Navbar } from "@/components/Navbar";
 import { ExploreContent } from "@/components/ExploreContent";
 
 export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      <Navbar />
       <main className="relative">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-950 opacity-60" />

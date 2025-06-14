@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# files
+C:\Users\HP\Documents\akiliquest-0d9e74f50aa9.json

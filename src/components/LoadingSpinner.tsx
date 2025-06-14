@@ -16,8 +16,8 @@ interface LoadingSpinnerProps {
             <p className="text-gray-600 dark:text-gray-400">
               AI is analyzing connections and generating your curiosity trail
             </p>
-          </div>
-  
+          </div> 
+                  
           <div className="max-w-md mx-auto">
             <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
               <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
@@ -33,4 +33,3 @@ interface LoadingSpinnerProps {
       </div>
     );
   }
-  
