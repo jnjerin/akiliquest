@@ -94,7 +94,7 @@ function createExplorationPrompt(topic: string): string {
   Focus on creating "aha moments" - connections that make people think "I never thought about it that way!"
   
   Respond ONLY with valid JSON, no additional text.`;
-  }
+}
   
   /**
  * Creates a prompt for finding deeper connections
@@ -112,13 +112,13 @@ function createDeeperExplorationPrompt(topic: string, existingConnections: strin
   - Philosophical or ethical dimensions
   
   Respond with the same JSON structure as before, but avoid repeating the already explored connections.`;
-  }
+}
   
-  /**
-   * Creates a prompt for topic validation and enhancement
-   * Helps clean up user input and suggest better search terms
-   */
-  function createTopicValidationPrompt(userInput: string): string {
+/**
+ * Creates a prompt for topic validation and enhancement
+ * Helps clean up user input and suggest better search terms
+ */
+function createTopicValidationPrompt(userInput: string): string {
     return `Analyze this topic input: "${userInput}"
   
   If it's a valid, explorable topic, respond with:
@@ -142,4 +142,172 @@ function createDeeperExplorationPrompt(topic: string, existingConnections: strin
   - Not just yes/no questions
   
   Respond ONLY with valid JSON.`;
+}
+
+// ============================================================================
+// CORE AI FUNCTIONS
+// ============================================================================
+
+/**
+ * Generates a complete curiosity exploration for a given topic
+ * This is the main function that powers the exploration feature
+ */
+export async function generateCuriosityExploration(topic: string): Promise<AIResponse> {
+    const startTime = Date.now();
+    
+    try {
+      console.log(`🔍 Generating curiosity exploration for: "${topic}"`);
+      
+      const vertexAI = initializeVertexAI();
+      const model = vertexAI.preview.getGenerativeModel({
+        model: 'gemini-1.5-pro-preview-0409',
+        generationConfig: {
+          maxOutputTokens: 2048,      // Enough for detailed responses
+          temperature: 0.7,           // Balance creativity with accuracy
+          topP: 0.8,                  // Focus on most likely tokens
+          topK: 40,                   // Reasonable diversity
+        },
+      });
+  
+      const prompt = createExplorationPrompt(topic);
+      
+      // Make the AI request with timeout
+      const result = await Promise.race([
+        model.generateContent(prompt),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('AI request timeout')), APP_CONSTANTS.AI_TIMEOUT)
+        )
+      ]) as any;
+  
+      const response = result.response;
+      const text = response.text();
+  
+      console.log('🤖 Raw AI response received, parsing...');
+  
+      // Parse and validate the JSON response
+      const parsedResponse = parseAIResponse(text);
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ Curiosity exploration generated in ${processingTime}ms`);
+  
+      return parsedResponse;
+  
+    } catch (error) {
+      const processingTime = Date.now() - startTime;
+      console.error(`❌ AI generation failed after ${processingTime}ms:`, error);
+      
+      // Return a fallback response instead of throwing
+      return createFallbackResponse(topic, error.message);
+    }
   }
+  
+  /**
+   * Validates and cleans user input before processing
+   * Helps ensure we get good results from the AI
+   */
+  export async function validateAndCleanTopic(userInput: string): Promise<{
+    isValid: boolean;
+    cleanedTopic?: string;
+    reason?: string;
+    suggestions: string[];
+  }> {
+    try {
+      console.log(`🧹 Validating topic input: "${userInput}"`);
+      
+      // Basic validation first
+      if (!userInput || userInput.trim().length < APP_CONSTANTS.MIN_TOPIC_LENGTH) {
+        return {
+          isValid: false,
+          reason: 'Topic is too short',
+          suggestions: ['Try a more specific topic', 'Add more details to your search']
+        };
+      }
+  
+      if (userInput.length > APP_CONSTANTS.MAX_TOPIC_LENGTH) {
+        return {
+          isValid: false,
+          reason: 'Topic is too long',
+          suggestions: ['Try a shorter, more focused topic', 'Break it into smaller concepts']
+        };
+      }
+  
+      const vertexAI = initializeVertexAI();
+      const model = vertexAI.preview.getGenerativeModel({
+        model: 'gemini-1.5-flash-preview-0514', // Faster model for validation
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0.3,           // Lower creativity for validation
+        },
+      });
+  
+      const prompt = createTopicValidationPrompt(userInput);
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+  
+      const validation = JSON.parse(cleanJsonResponse(text));
+      
+      console.log(`✅ Topic validation complete: ${validation.isValid ? 'valid' : 'invalid'}`);
+      return validation;
+  
+    } catch (error) {
+      console.error('❌ Topic validation failed:', error);
+      
+      // Fallback to basic validation
+      return {
+        isValid: true, // Be permissive if AI validation fails
+        cleanedTopic: userInput.trim(),
+        suggestions: []
+      };
+    }
+  }
+  
+  /**
+   * Generates topic suggestions based on user's exploration history
+   * Helps users discover new areas of interest
+   */
+  export async function generateTopicSuggestions(exploredTopics: string[], count: number = 5): Promise<string[]> {
+    try {
+      console.log('💡 Generating topic suggestions...');
+      
+      const vertexAI = initializeVertexAI();
+      const model = vertexAI.preview.getGenerativeModel({
+        model: 'gemini-1.5-flash-preview-0514',
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0.8,           // Higher creativity for suggestions
+        },
+      });
+  
+      const prompt = `Based on these previously explored topics: ${exploredTopics.join(', ')}
+  
+  Generate ${count} new topic suggestions that would interest someone with these curiosities. Focus on:
+  - Related but unexplored areas
+  - Cross-connections between their interests
+  - Slightly more advanced concepts
+  - Surprising tangential topics
+  
+  Respond with a JSON array of topic strings:
+  ["topic 1", "topic 2", "topic 3", ...]`;
+  
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      
+      const suggestions = JSON.parse(cleanJsonResponse(text));
+      
+      console.log(`✅ Generated ${suggestions.length} topic suggestions`);
+      return Array.isArray(suggestions) ? suggestions : [];
+  
+    } catch (error) {
+      console.error('❌ Topic suggestion generation failed:', error);
+      
+      // Return some default suggestions
+      return [
+        'The science of decision making',
+        'How languages shape thought',
+        'The mathematics of music',
+        'Biomimicry in technology',
+        'The psychology of creativity'
+      ];
+    }
+  }
+  
