@@ -328,3 +328,89 @@ async function createIndexes(): Promise<void> {
     }
   }
   
+  // ============================================================================
+  // USER SESSION OPERATIONS
+  // ============================================================================
+  
+  /**
+   * Creates or updates a user session
+   */
+  export async function updateUserSession(sessionData: Partial<UserSession> & { sessionId: string }): Promise<UserSession> {
+    const database = await connectToDatabase();
+    const collection = database.collection<UserSession>(COLLECTION_NAMES.SESSIONS);
+  
+    try {
+      const now = new Date();
+      
+      const updatedSession = await collection.findOneAndUpdate(
+        { sessionId: sessionData.sessionId },
+        {
+          $set: {
+            ...sessionData,
+            lastActiveAt: now,
+          },
+          $setOnInsert: {
+            createdAt: now,
+            topicsExplored: [],
+            trailsGenerated: 0,
+            totalExplorationTime: 0,
+            curiosityScore: 0,
+            achievements: [],
+          }
+        },
+        { 
+          upsert: true,           // Create if doesn't exist
+          returnDocument: 'after' // Return updated document
+        }
+      );
+  
+      return updatedSession.value!;
+    } catch (error) {
+      console.error('❌ Error updating user session:', error);
+      throw new Error(`Failed to update user session: ${error.message}`);
+    }
+  }
+  
+  // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Checks if database connection is healthy
+   */
+  export async function checkDatabaseHealth(): Promise<boolean> {
+    try {
+      const database = await connectToDatabase();
+      // Simple ping to check connection
+      await database.admin().ping();
+      return true;
+    } catch (error) {
+      console.error('❌ Database health check failed:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Gets database statistics for monitoring
+   */
+  export async function getDatabaseStats(): Promise<any> {
+    try {
+      const database = await connectToDatabase();
+      
+      const stats = await Promise.all([
+        database.collection(COLLECTION_NAMES.TOPICS).countDocuments(),
+        database.collection(COLLECTION_NAMES.TRAILS).countDocuments(),
+        database.collection(COLLECTION_NAMES.SESSIONS).countDocuments(),
+      ]);
+  
+      return {
+        topics: stats[0],
+        trails: stats[1],
+        sessions: stats[2],
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      console.error('❌ Error getting database stats:', error);
+      return null;
+    }
+}
