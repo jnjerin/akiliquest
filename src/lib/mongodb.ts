@@ -257,3 +257,74 @@ async function createIndexes(): Promise<void> {
     }
   }
   
+  // ============================================================================
+  // CURIOSITY TRAIL OPERATIONS
+  // ============================================================================
+  
+  /**
+   * Saves a complete curiosity trail to the database
+   */
+  export async function saveCuriosityTrail(trailData: Omit<CuriosityTrail, '_id'>): Promise<CuriosityTrail> {
+    const database = await connectToDatabase();
+    const collection = database.collection<CuriosityTrail>(COLLECTION_NAMES.TRAILS);
+  
+    try {
+      // Validate trail structure
+      if (!isCuriosityTrail(trailData)) {
+        throw new Error('Invalid curiosity trail data structure');
+      }
+  
+      const result = await collection.insertOne(trailData);
+      
+      return {
+        ...trailData,
+        _id: result.insertedId.toString(),
+      };
+  
+    } catch (error) {
+      console.error('❌ Error saving curiosity trail:', error);
+      throw new Error(`Failed to save curiosity trail: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Retrieves a curiosity trail by topic ID
+   * Returns the most recent trail for the topic
+   */
+  export async function getCuriosityTrailByTopic(topicId: string): Promise<CuriosityTrail | null> {
+    const database = await connectToDatabase();
+    const collection = database.collection<CuriosityTrail>(COLLECTION_NAMES.TRAILS);
+  
+    try {
+      const trail = await collection
+        .findOne(
+          { topicId },
+          { sort: { generatedAt: -1 } }  // Get most recent
+        );
+      
+      return trail;
+    } catch (error) {
+      console.error('❌ Error fetching curiosity trail:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Gets recent curiosity trails for discovery
+   */
+  export async function getRecentTrails(limit: number = 10): Promise<CuriosityTrail[]> {
+    const database = await connectToDatabase();
+    const collection = database.collection<CuriosityTrail>(COLLECTION_NAMES.TRAILS);
+  
+    try {
+      return await collection
+        .find({})
+        .sort({ generatedAt: -1 })
+        .limit(limit)
+        .toArray();
+    } catch (error) {
+      console.error('❌ Error fetching recent trails:', error);
+      return [];
+    }
+  }
+  
